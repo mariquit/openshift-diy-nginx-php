@@ -13,9 +13,13 @@ umask 077
 source ${OPENSHIFT_REPO_DIR}/.openshift/action_hooks/common
 
 # Configure versions
-NGINX_VERSION='1.5.1'
+# previous successful build on nginx 1.5.1
+NGINX_VERSION='1.5.7'
 ZLIB_VERSION='1.2.8'
 PCRE_VERSION='8.33'
+PAGESPEED_VERSION='1.7.30.1'
+HEADERSMORE_VERSION='0.23'
+NAXSI_VERSION='0.53.2'
 
 PHP_VERSION='5.5.0'
 ICU_VERSION='51.2'

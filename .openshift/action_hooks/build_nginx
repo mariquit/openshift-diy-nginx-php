@@ -3,39 +3,62 @@ function install_nginx() {
     local pkg=nginx-${NGINX_VERSION}.tar.gz
     local pkg_pcre=pcre-${PCRE_VERSION}.tar.bz2
     local pkg_zlib=zlib-${ZLIB_VERSION}.tar.gz
+    local pkg_pagespeed=pagespeed-${PAGESPEED_VERSION}-beta.zip
+    local pkg_headersmore=headersmore-${HEADERSMORE_VERSION}.tar.gz
+    local pkg_naxsi=naxsi-${NAXSI_VERSION}.tar.gz
 
     mkdir -p ${BUILD_DIR}
     mkdir -p ${ROOT_DIR}/etc/nginx
     pushd ${BUILD_DIR}
 
+    echo "Downloading pagespeed."
+    wget --output-document=./${pkg_pagespeed} https://github.com/pagespeed/ngx_pagespeed/archive/v${PAGESPEED_VERSION}-beta.zip
+    unzip ${pkg_pagespeed}
+    pushd ngx_pagespeed-${PAGESPEED_VERSION}-beta/
+    wget https://dl.google.com/dl/page-speed/psol/${PAGESPEED_VERSION}.tar.gz
+    tar xvfz ${PAGESPEED_VERSION}.tar.gz
+    pushd ${BUILD_DIR}
+
+    echo "Downloading headers-more."
+    wget --output-document=./${pkg_headersmore} https://github.com/agentzh/headers-more-nginx-module/archive/v${HEADERSMORE_VERSION}.tar.gz
+    tar xvfz ${pkg_headersmore}
+
+    echo "Downloading naxsi."
+    wget --output-document=./${pkg_naxsi} https://github.com/nbs-system/naxsi/archive/${NAXSI_VERSION}.tar.gz
+    tar xvfz ${pkg_naxsi}
+
     echo "Downloading ${pkg_pcre}."
     wget --output-document=./${pkg_pcre} ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/${pkg_pcre}
-
-    echo "Unpacking ${pkg_pcre}."
-    tar xfj ${pkg_pcre}
+    tar xvfj ${pkg_pcre}
 
     echo "Downloading ${pkg_zlib}."
     wget http://zlib.net/${pkg_zlib}
-
-    echo "Unpacking ${pkg_zlib}."
-    tar xfz ${pkg_zlib}
+    tar xvfz ${pkg_zlib}
 
     echo "Downloading ${pkg}."
     wget http://nginx.org/download/${pkg}
-
-    echo "Unpacking ${pkg}."
     tar xfz ${pkg}
     pushd nginx-${NGINX_VERSION}
 
     echo "Configuring nginx."
     ./configure \
-        --with-http_ssl_module \
-        --with-http_sub_module \
+        --add-module=${BUILD_DIR}/ngx_pagespeed-${PAGESPEED_VERSION}-beta \
+        --add-module=${BUILD_DIR}/headers-more-nginx-module-${HEADERSMORE_VERSION} \
+        --add-module=${BUILD_DIR}/naxsi-${NAXSI_VERSION}/naxsi_src \
+        --without-mail_pop3_module \
+        --without-mail_imap_module \
+        --without-mail_smtp_module \
+        --without-http_uwsgi_module \
+        --without-http_scgi_module \
+        --without-http_memcached_module \
         --with-zlib=${BUILD_DIR}/zlib-${ZLIB_VERSION} \
         --with-pcre=${BUILD_DIR}/pcre-${PCRE_VERSION} \
+        --with-pcre-jit \
         --with-http_ssl_module \
+        --with-http_sub_module \
         --with-http_realip_module \
         --with-http_gzip_static_module \
+        --with-http_secure_link_module \
         --with-ipv6 \
         --prefix=${ROOT_DIR}/nginx
 
